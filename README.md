@@ -26,9 +26,30 @@ constructed from the year you provide:
 
 | Role | Permissions allowed |
 |------|---------------------|
-| Organizer | View Channel, Send Messages, Manage Messages, Manage Threads, Embed Links, Attach Files, Read Message History, Add Reactions, Mention Everyone, Create Public Threads, Send Messages in Threads |
+| Organizer | View Channel, Send Messages, Manage Messages, Manage Threads, Embed Links, Attach Files, Read Message History, Add Reactions, Mention Everyone, Create Public Threads, Send Messages in Threads, Send Polls |
 | Volunteer | View Channel, Send Messages, Embed Links, Attach Files, Read Message History, Add Reactions, Send Messages in Threads |
 | Nonprofit | Same as Volunteer |
+
+Dry-run mode is the default — current overwrites are printed without making any
+changes. Pass `--run` to actually apply the permission overwrites.
+
+### `set-organizer-folder-permissions.sh`
+
+Sets channel permission overwrites for the Organizers role on the "Organizers"
+category channel and every child channel inside it.
+
+The category targeted is always `Organizers`. The role name is constructed from
+the year you provide:
+
+| Argument | Category | Role name |
+|----------|----------|-----------|
+| `2026`   | `Organizers` | `2026 Organizer` |
+
+**Permission sets applied:**
+
+| Role | Permissions allowed |
+|------|---------------------|
+| Organizer | View Channel, Send Messages, Manage Messages, Manage Threads, Embed Links, Attach Files, Read Message History, Add Reactions, Mention Everyone, Create Public Threads, Send Messages in Threads, Send Polls |
 
 Dry-run mode is the default — current overwrites are printed without making any
 changes. Pass `--run` to actually apply the permission overwrites.
@@ -73,8 +94,8 @@ you want the script to create or update.
 
 ### 5. Bot channel access
 
-`set-event-folder-permissions.sh` must be able to see and manage every channel in the
-target folder. If the bot's role is denied `View Channel` on a category or any
+These scripts must be able to see and manage every channel in the target folder.
+If the bot's role is denied `View Channel` on a category or any
 child channel — including by a pre-existing `@everyone` overwrite — the script
 will warn and skip that channel rather than updating it.
 
@@ -99,6 +120,9 @@ nix run .#duplicate-role -- "2025 Organizer" "2026 Organizer"
 
 nix run .#set-event-folder-permissions -- 2026
 nix run .#set-event-folder-permissions -- 2026 --run
+
+nix run .#set-organizer-folder-permissions -- 2026
+nix run .#set-organizer-folder-permissions -- 2026 --run
 ```
 
 **Install into your profile:**
@@ -106,9 +130,11 @@ nix run .#set-event-folder-permissions -- 2026 --run
 ```bash
 nix profile install .#duplicate-role
 nix profile install .#set-event-folder-permissions
+nix profile install .#set-organizer-folder-permissions
 
 duplicate-role "2025 Volunteer" "2026 Volunteer"
 set-event-folder-permissions 2026
+set-organizer-folder-permissions 2026
 ```
 
 **Drop into a dev shell with `curl` and `jq` on your PATH:**
@@ -118,6 +144,8 @@ nix develop
 ./duplicate-role.sh "2025 Volunteer" "2026 Volunteer"
 ./set-event-folder-permissions.sh 2026
 ./set-event-folder-permissions.sh 2026 --run
+./set-organizer-folder-permissions.sh 2026
+./set-organizer-folder-permissions.sh 2026 --run
 ```
 
 ---
@@ -135,7 +163,9 @@ nix develop
 **Make the scripts executable (first time only):**
 
 ```bash
-chmod +x duplicate-role.sh set-event-folder-permissions.sh
+chmod +x duplicate-role.sh
+chmod +x set-event-folder-permissions.sh
+chmod +x set-organizer-folder-permissions.sh
 ```
 
 **Run:**
@@ -147,6 +177,9 @@ chmod +x duplicate-role.sh set-event-folder-permissions.sh
 
 ./set-event-folder-permissions.sh 2026
 ./set-event-folder-permissions.sh 2026 --run
+
+./set-organizer-folder-permissions.sh 2026
+./set-organizer-folder-permissions.sh 2026 --run
 ```
 
 ---
@@ -190,6 +223,23 @@ set-event-folder-permissions <year> [--run]
 The category targeted is always `<year> Projects` (e.g. `2026 Projects`). The
 script targets three roles — `<year> Organizer`, `<year> Volunteer`, and
 `<year> Nonprofit` — and sets permission overwrites on the category and every
+child channel inside it.
+
+**Bot permissions required:** Manage Roles, Manage Channels
+
+### `set-organizer-folder-permissions`
+
+```
+set-organizer-folder-permissions <year> [--run]
+```
+
+| Argument | Description |
+|----------|-------------|
+| `--run` | Apply the permission overwrites (default is dry-run) |
+| `year` | Year prefix used to build the role name (e.g. `2026`) |
+
+The category targeted is always `Organizers`. The script targets one role —
+`<year> Organizer` — and sets permission overwrites on the category and every
 child channel inside it.
 
 **Bot permissions required:** Manage Roles, Manage Channels
