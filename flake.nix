@@ -28,10 +28,16 @@
           runtimeInputs = [ pkgs.curl pkgs.jq ];
           text = builtins.readFile ./set-organizer-folder-permissions.sh;
         };
+
+        find-duplicate-year-roles = pkgs.writeShellApplication {
+          name = "find-duplicate-year-roles";
+          runtimeInputs = [ pkgs.curl pkgs.jq ];
+          text = builtins.readFile ./find-duplicate-year-roles.sh;
+        };
       in
       {
         packages = {
-          inherit duplicate-role set-event-folder-permissions set-organizer-folder-permissions;
+          inherit duplicate-role set-event-folder-permissions set-organizer-folder-permissions find-duplicate-year-roles;
           default = duplicate-role;
         };
 
@@ -39,6 +45,7 @@
           duplicate-role                   = flake-utils.lib.mkApp { drv = duplicate-role; };
           set-event-folder-permissions     = flake-utils.lib.mkApp { drv = set-event-folder-permissions; };
           set-organizer-folder-permissions = flake-utils.lib.mkApp { drv = set-organizer-folder-permissions; };
+          find-duplicate-year-roles        = flake-utils.lib.mkApp { drv = find-duplicate-year-roles; };
           default = self.apps.${system}.duplicate-role;
         };
 
