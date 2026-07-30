@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # set-event-folder-permissions.sh
-# Sets permission overwrites for the Organizer, Volunteer, and Nonprofit roles
+# Sets permission overwrites for the Organizer, Volunteer, Nonprofit, and Year Organizer roles
 # on a category channel and every child channel inside it.
 # The category name is automatically set to "<year> Projects".
 #
@@ -14,16 +14,18 @@
 #   ./set-event-folder-permissions.sh 2026
 #   ./set-event-folder-permissions.sh 2026 --run
 #
-# The Organizer role is always "Event Organizers". Volunteer and Nonprofit
-# role names are constructed as "<year> Volunteer" and "<year> Nonprofit".
-# The category targeted is "<year> Projects".
+# The Organizer role is always "Event Organizers". Volunteer, Nonprofit, and
+# Year Organizer role names are constructed as "<year> Volunteer",
+# "<year> Nonprofit", and "<year> Organizer". The category targeted is
+# "<year> Projects".
 #
 # Permission sets applied:
-#   Organizer   — View, Send, Manage Messages, Manage Threads, Embed Links,
-#                 Attach Files, Read History, Add Reactions, Mention Everyone,
-#                 Create Public Threads, Send Messages in Threads, Send Polls
-#   Volunteer   — View, Send, Embed Links, Attach Files, Read History,
-#   Nonprofit     Add Reactions, Send Messages in Threads
+#   Organizer      — View, Send, Manage Messages, Manage Threads, Embed Links,
+#                    Attach Files, Read History, Add Reactions, Mention Everyone,
+#                    Create Public Threads, Send Messages in Threads, Send Polls
+#   Volunteer      — View, Send, Embed Links, Attach Files, Read History,
+#   Nonprofit        Add Reactions, Send Messages in Threads
+#   Year Organizer
 #
 # Environment variables required:
 #   DISCORD_BOT_TOKEN  - your bot token
@@ -68,6 +70,7 @@ CATEGORY_NAME="${YEAR} Projects"
 ORGANIZER_ROLE="Event Organizers"
 VOLUNTEER_ROLE="${YEAR} Volunteer"
 NONPROFIT_ROLE="${YEAR} Nonprofit"
+YEAR_ORGANIZER_ROLE="${YEAR} Organizer"
 
 # ── validation ────────────────────────────────────────────────────────────────
 
@@ -87,42 +90,42 @@ AUTH="Authorization: Bot ${DISCORD_BOT_TOKEN}"
 # @everyone: allow=0, deny covers all bits 0–52 (every current permission).
 # Named roles: deny=0 (no permissions are explicitly denied for them).
 #
-# | Permission                  | Bit  | Bitmask (hex)        | Organizer | Volunteer/Nonprofit | @everyone |
-# |-----------------------------|------|----------------------|-----------|---------------------|-----------|
-# | CREATE_INSTANT_INVITE       |  0   | 0x0000000000000001   | off       | off                 | deny      |
-# | MANAGE_CHANNELS             |  4   | 0x0000000000000010   | on        | off                 | deny      |
-# | ADD_REACTIONS               |  6   | 0x0000000000000040   | on        | on                  | deny      |
-# | PRIORITY_SPEAKER            |  8   | 0x0000000000000100   | on        | off                 | deny      |
-# | STREAM                      |  9   | 0x0000000000000200   | on        | off                 | deny      |
-# | VIEW_CHANNEL                | 10   | 0x0000000000000400   | on        | on                  | deny      |
-# | SEND_MESSAGES               | 11   | 0x0000000000000800   | on        | on                  | deny      |
-# | SEND_TTS_MESSAGES           | 12   | 0x0000000000001000   | on        | on                  | deny      |
-# | MANAGE_MESSAGES             | 13   | 0x0000000000002000   | on        | on                  | deny      |
-# | EMBED_LINKS                 | 14   | 0x0000000000004000   | on        | on                  | deny      |
-# | ATTACH_FILES                | 15   | 0x0000000000008000   | on        | on                  | deny      |
-# | READ_MESSAGE_HISTORY        | 16   | 0x0000000000010000   | on        | on                  | deny      |
-# | MENTION_EVERYONE            | 17   | 0x0000000000020000   | on        | off                 | deny      |
-# | USE_EXTERNAL_EMOJIS         | 18   | 0x0000000000040000   | on        | off                 | deny      |
-# | CONNECT                     | 20   | 0x0000000000100000   | on        | on                  | deny      |
-# | SPEAK                       | 21   | 0x0000000000200000   | on        | on                  | deny      |
-# | MUTE_MEMBERS                | 22   | 0x0000000000400000   | on        | on                  | deny      |
-# | DEAFEN_MEMBERS              | 23   | 0x0000000000800000   | on        | on                  | deny      |
-# | MOVE_MEMBERS                | 24   | 0x0000000001000000   | on        | on                  | deny      |
-# | USE_VAD                     | 25   | 0x0000000002000000   | on        | off                 | deny      |
-# | MANAGE_ROLES                | 28   | 0x0000000010000000   | off       | off                 | deny      |
-# | MANAGE_WEBHOOKS             | 29   | 0x0000000020000000   | off       | off                 | deny      |
-# | USE_APPLICATION_COMMANDS    | 31   | 0x0000000080000000   | off       | off                 | deny      |
-# | MANAGE_EVENTS               | 33   | 0x0000000200000000   | on        | off                 | deny      |
-# | MANAGE_THREADS              | 34   | 0x0000000400000000   | on        | on                  | deny      |
-# | CREATE_PUBLIC_THREADS       | 35   | 0x0000000800000000   | on        | on                  | deny      |
-# | CREATE_PRIVATE_THREADS      | 36   | 0x0000001000000000   | on        | on                  | deny      |
-# | USE_EXTERNAL_STICKERS       | 37   | 0x0000002000000000   | on        | off                 | deny      |
-# | SEND_MESSAGES_IN_THREADS    | 38   | 0x0000004000000000   | on        | on                  | deny      |
-# | USE_EMBEDDED_ACTIVITIES     | 39   | 0x0000008000000000   | off       | off                 | deny      |
-# | USE_SOUNDBOARD              | 42   | 0x0000040000000000   | off       | off                 | deny      |
-# | USE_EXTERNAL_SOUNDS         | 45   | 0x0000200000000000   | off       | off                 | deny      |
-# | SEND_VOICE_MESSAGES         | 46   | 0x0000400000000000   | off       | off                 | deny      |
-# | SEND_POLLS                  | 49   | 0x0002000000000000   | on        | off                 | deny      |
+# | Permission                  | Bit  | Bitmask (hex)        | Organizer | Volunteer/Nonprofit | Year Organizer | @everyone |
+# |-----------------------------|------|----------------------|-----------|---------------------|----------------|-----------|
+# | CREATE_INSTANT_INVITE       |  0   | 0x0000000000000001   | off       | off                 | off            | deny      |
+# | MANAGE_CHANNELS             |  4   | 0x0000000000000010   | on        | off                 | off            | deny      |
+# | ADD_REACTIONS               |  6   | 0x0000000000000040   | on        | on                  | on             | deny      |
+# | PRIORITY_SPEAKER            |  8   | 0x0000000000000100   | on        | off                 | off            | deny      |
+# | STREAM                      |  9   | 0x0000000000000200   | on        | off                 | off            | deny      |
+# | VIEW_CHANNEL                | 10   | 0x0000000000000400   | on        | on                  | on             | deny      |
+# | SEND_MESSAGES               | 11   | 0x0000000000000800   | on        | on                  | on             | deny      |
+# | SEND_TTS_MESSAGES           | 12   | 0x0000000000001000   | on        | on                  | on             | deny      |
+# | MANAGE_MESSAGES             | 13   | 0x0000000000002000   | on        | on                  | on             | deny      |
+# | EMBED_LINKS                 | 14   | 0x0000000000004000   | on        | on                  | on             | deny      |
+# | ATTACH_FILES                | 15   | 0x0000000000008000   | on        | on                  | on             | deny      |
+# | READ_MESSAGE_HISTORY        | 16   | 0x0000000000010000   | on        | on                  | on             | deny      |
+# | MENTION_EVERYONE            | 17   | 0x0000000000020000   | on        | off                 | off            | deny      |
+# | USE_EXTERNAL_EMOJIS         | 18   | 0x0000000000040000   | on        | off                 | off            | deny      |
+# | CONNECT                     | 20   | 0x0000000000100000   | on        | on                  | on             | deny      |
+# | SPEAK                       | 21   | 0x0000000000200000   | on        | on                  | on             | deny      |
+# | MUTE_MEMBERS                | 22   | 0x0000000000400000   | on        | on                  | on             | deny      |
+# | DEAFEN_MEMBERS              | 23   | 0x0000000000800000   | on        | on                  | on             | deny      |
+# | MOVE_MEMBERS                | 24   | 0x0000000001000000   | on        | on                  | on             | deny      |
+# | USE_VAD                     | 25   | 0x0000000002000000   | on        | off                 | off            | deny      |
+# | MANAGE_ROLES                | 28   | 0x0000000010000000   | off       | off                 | off            | deny      |
+# | MANAGE_WEBHOOKS             | 29   | 0x0000000020000000   | off       | off                 | off            | deny      |
+# | USE_APPLICATION_COMMANDS    | 31   | 0x0000000080000000   | off       | off                 | off            | deny      |
+# | MANAGE_EVENTS               | 33   | 0x0000000200000000   | on        | off                 | off            | deny      |
+# | MANAGE_THREADS              | 34   | 0x0000000400000000   | on        | on                  | on             | deny      |
+# | CREATE_PUBLIC_THREADS       | 35   | 0x0000000800000000   | on        | on                  | on             | deny      |
+# | CREATE_PRIVATE_THREADS      | 36   | 0x0000001000000000   | on        | on                  | on             | deny      |
+# | USE_EXTERNAL_STICKERS       | 37   | 0x0000002000000000   | on        | off                 | off            | deny      |
+# | SEND_MESSAGES_IN_THREADS    | 38   | 0x0000004000000000   | on        | on                  | on             | deny      |
+# | USE_EMBEDDED_ACTIVITIES     | 39   | 0x0000008000000000   | off       | off                 | off            | deny      |
+# | USE_SOUNDBOARD              | 42   | 0x0000040000000000   | off       | off                 | off            | deny      |
+# | USE_EXTERNAL_SOUNDS         | 45   | 0x0000200000000000   | off       | off                 | off            | deny      |
+# | SEND_VOICE_MESSAGES         | 46   | 0x0000400000000000   | off       | off                 | off            | deny      |
+# | SEND_POLLS                  | 49   | 0x0002000000000000   | on        | off                 | off            | deny      |
 
 # @everyone role ID always equals the guild ID in Discord
 EVERYONE_ID="$DISCORD_SERVER_ID"
@@ -137,6 +140,9 @@ VOLUNTEER_DENY=0
 
 NONPROFIT_ALLOW="$VOLUNTEER_ALLOW"
 NONPROFIT_DENY=0
+
+YEAR_ORGANIZER_ALLOW="$VOLUNTEER_ALLOW"
+YEAR_ORGANIZER_DENY=0
 
 # ── fetch all guild channels ──────────────────────────────────────────────────
 
@@ -184,12 +190,14 @@ lookup_role_id() {
 ORGANIZER_ID=$(lookup_role_id "$ORGANIZER_ROLE")
 VOLUNTEER_ID=$(lookup_role_id "$VOLUNTEER_ROLE")
 NONPROFIT_ID=$(lookup_role_id "$NONPROFIT_ROLE")
+YEAR_ORGANIZER_ID=$(lookup_role_id "$YEAR_ORGANIZER_ROLE")
 
 info "Found roles:"
-info "  @everyone        → ${EVERYONE_ID}"
-info "  ${ORGANIZER_ROLE} → ${ORGANIZER_ID}"
-info "  ${VOLUNTEER_ROLE} → ${VOLUNTEER_ID}"
-info "  ${NONPROFIT_ROLE} → ${NONPROFIT_ID}"
+info "  @everyone              → ${EVERYONE_ID}"
+info "  ${ORGANIZER_ROLE}      → ${ORGANIZER_ID}"
+info "  ${VOLUNTEER_ROLE}      → ${VOLUNTEER_ID}"
+info "  ${NONPROFIT_ROLE}      → ${NONPROFIT_ID}"
+info "  ${YEAR_ORGANIZER_ROLE} → ${YEAR_ORGANIZER_ID}"
 
 # ── collect channels to update (category + children) ─────────────────────────
 
@@ -246,12 +254,13 @@ if [[ "$DRY_RUN" == true ]]; then
     fi
   }
 
-  for role_id in "$EVERYONE_ID" "$ORGANIZER_ID" "$VOLUNTEER_ID" "$NONPROFIT_ID"; do
+  for role_id in "$EVERYONE_ID" "$ORGANIZER_ID" "$VOLUNTEER_ID" "$NONPROFIT_ID" "$YEAR_ORGANIZER_ID"; do
     case "$role_id" in
-      "$EVERYONE_ID")  role_name="@everyone"       expected_allow="$EVERYONE_ALLOW"  expected_deny="$EVERYONE_DENY"  ;;
-      "$ORGANIZER_ID") role_name="$ORGANIZER_ROLE" expected_allow="$ORGANIZER_ALLOW" expected_deny="$ORGANIZER_DENY" ;;
-      "$VOLUNTEER_ID") role_name="$VOLUNTEER_ROLE" expected_allow="$VOLUNTEER_ALLOW" expected_deny="$VOLUNTEER_DENY" ;;
-      "$NONPROFIT_ID") role_name="$NONPROFIT_ROLE" expected_allow="$NONPROFIT_ALLOW" expected_deny="$NONPROFIT_DENY" ;;
+      "$EVERYONE_ID")       role_name="@everyone"            expected_allow="$EVERYONE_ALLOW"       expected_deny="$EVERYONE_DENY"       ;;
+      "$ORGANIZER_ID")      role_name="$ORGANIZER_ROLE"      expected_allow="$ORGANIZER_ALLOW"      expected_deny="$ORGANIZER_DENY"      ;;
+      "$VOLUNTEER_ID")      role_name="$VOLUNTEER_ROLE"      expected_allow="$VOLUNTEER_ALLOW"      expected_deny="$VOLUNTEER_DENY"      ;;
+      "$NONPROFIT_ID")      role_name="$NONPROFIT_ROLE"      expected_allow="$NONPROFIT_ALLOW"      expected_deny="$NONPROFIT_DENY"      ;;
+      "$YEAR_ORGANIZER_ID") role_name="$YEAR_ORGANIZER_ROLE" expected_allow="$YEAR_ORGANIZER_ALLOW" expected_deny="$YEAR_ORGANIZER_DENY" ;;
     esac
 
     info ""
@@ -321,10 +330,11 @@ set_role_overwrites() {
   done
 }
 
-set_role_overwrites "$ORGANIZER_ID" "$ORGANIZER_ROLE" "$ORGANIZER_ALLOW" "$ORGANIZER_DENY"
-set_role_overwrites "$VOLUNTEER_ID" "$VOLUNTEER_ROLE" "$VOLUNTEER_ALLOW" "$VOLUNTEER_DENY"
-set_role_overwrites "$NONPROFIT_ID" "$NONPROFIT_ROLE" "$NONPROFIT_ALLOW" "$NONPROFIT_DENY"
-set_role_overwrites "$EVERYONE_ID"  "@everyone"       "$EVERYONE_ALLOW"  "$EVERYONE_DENY"
+set_role_overwrites "$ORGANIZER_ID"      "$ORGANIZER_ROLE"      "$ORGANIZER_ALLOW"      "$ORGANIZER_DENY"
+set_role_overwrites "$VOLUNTEER_ID"      "$VOLUNTEER_ROLE"      "$VOLUNTEER_ALLOW"      "$VOLUNTEER_DENY"
+set_role_overwrites "$NONPROFIT_ID"      "$NONPROFIT_ROLE"      "$NONPROFIT_ALLOW"      "$NONPROFIT_DENY"
+set_role_overwrites "$YEAR_ORGANIZER_ID" "$YEAR_ORGANIZER_ROLE" "$YEAR_ORGANIZER_ALLOW" "$YEAR_ORGANIZER_DENY"
+set_role_overwrites "$EVERYONE_ID"       "@everyone"            "$EVERYONE_ALLOW"       "$EVERYONE_DENY"
 
 info ""
 info "Done! Permission overwrites applied to '${CATEGORY_NAME}' and ${CHILD_COUNT} child channel(s)."
