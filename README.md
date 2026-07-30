@@ -54,6 +54,28 @@ keep only `<year> Organizer`.
 Dry-run mode is the default — affected members are listed without making any
 changes. Pass `--run` to actually remove the lower-priority roles.
 
+### `download-channel-media.sh`
+
+Scans all messages in a Discord channel and downloads any image and video
+attachments that have not already been saved locally. Re-running the script is
+safe — files that already exist on disk are skipped automatically.
+
+The channel is identified by its ID. The channel name is looked up from the API
+and used in the stored filenames. Pass `--all-channels` instead of a channel ID
+to scan every text channel in the server. Because the channel name is part of
+the filename, all channels can share the same output directory:
+
+```
+2024-03-15 - general - photo.png
+2024-03-20 - photos - screenshot.jpg
+```
+
+Dry-run mode is the default — the filenames of media found are printed without
+downloading anything. Pass `--run` to actually download missing files.
+
+An optional output directory argument sets where files are saved (defaults to
+the current working directory).
+
 ### `set-organizer-folder-permissions.sh`
 
 Sets channel permission overwrites for the Organizers role on the "Organizers"
@@ -148,6 +170,12 @@ nix run .#set-organizer-folder-permissions -- 2026 --run
 
 nix run .#find-duplicate-year-roles -- 2026
 nix run .#find-duplicate-year-roles -- 2026 --run
+
+nix run .#download-channel-media -- 123456789012345678
+nix run .#download-channel-media -- --run 123456789012345678
+nix run .#download-channel-media -- --run 123456789012345678 ./images
+nix run .#download-channel-media -- --all-channels
+nix run .#download-channel-media -- --run --all-channels ./images
 ```
 
 **Install into your profile:**
@@ -157,11 +185,14 @@ nix profile install .#duplicate-role
 nix profile install .#set-event-folder-permissions
 nix profile install .#set-organizer-folder-permissions
 nix profile install .#find-duplicate-year-roles
+nix profile install .#download-channel-media
 
 duplicate-role "2025 Volunteer" "2026 Volunteer"
 set-event-folder-permissions 2026
 set-organizer-folder-permissions 2026
 find-duplicate-year-roles 2026
+download-channel-media 123456789012345678
+download-channel-media --all-channels
 ```
 
 **Drop into a dev shell with `curl` and `jq` on your PATH:**
@@ -175,6 +206,11 @@ nix develop
 ./set-organizer-folder-permissions.sh 2026 --run
 ./find-duplicate-year-roles.sh 2026
 ./find-duplicate-year-roles.sh 2026 --run
+./download-channel-media.sh 123456789012345678
+./download-channel-media.sh --run 123456789012345678
+./download-channel-media.sh --run 123456789012345678 ./images
+./download-channel-media.sh --all-channels
+./download-channel-media.sh --run --all-channels ./images
 ```
 
 ---
@@ -196,6 +232,7 @@ chmod +x duplicate-role.sh
 chmod +x set-event-folder-permissions.sh
 chmod +x set-organizer-folder-permissions.sh
 chmod +x find-duplicate-year-roles.sh
+chmod +x download-channel-media.sh
 ```
 
 **Run:**
@@ -213,6 +250,12 @@ chmod +x find-duplicate-year-roles.sh
 
 ./find-duplicate-year-roles.sh 2026
 ./find-duplicate-year-roles.sh 2026 --run
+
+./download-channel-media.sh 123456789012345678
+./download-channel-media.sh --run 123456789012345678
+./download-channel-media.sh --run 123456789012345678 ./images
+./download-channel-media.sh --all-channels
+./download-channel-media.sh --run --all-channels ./images
 ```
 
 ---
@@ -299,3 +342,34 @@ API.
 **Privileged intent required:** Server Members Intent — must be enabled in the
 Discord Developer Portal under your bot's **Bot → Privileged Gateway Intents**
 settings before this script can read guild members.
+
+### `download-channel-media`
+
+```
+download-channel-media [--run] <channel_id> [<output_dir>]
+download-channel-media [--run] --all-channels [<output_dir>]
+```
+
+| Argument | Description |
+|----------|-------------|
+| `--run` | Download missing files (default is dry-run) |
+| `channel_id` | Discord channel ID (e.g. `123456789012345678`) |
+| `--all-channels` | Scan every text channel in the server instead of one |
+| `output_dir` | Directory to save files into (default: current directory) |
+
+Looks up the channel name from the API, then scans every message in the channel
+for image and video attachments (jpg, jpeg, png, gif, webp, bmp, tiff, svg,
+avif, mp4, mov, avi, mkv, webm, flv, wmv, m4v, mpeg, mpg, 3gp, ogv) and either
+lists their filenames (dry-run) or downloads any that are not already present in
+the output directory. The script paginates through the full message history
+automatically and is safe to re-run — existing files are always skipped.
+
+When `--all-channels` is used, text channels that the bot cannot read are
+skipped with a warning rather than halting the script.
+
+**Bot permissions required:** Read Message History, View Channel
+
+**Privileged intent required:** Message Content Intent — must be enabled in the
+Discord Developer Portal under your bot's **Bot → Privileged Gateway Intents**
+settings. Without it the Discord API returns empty `attachments` arrays and no
+images will be found.

@@ -34,10 +34,16 @@
           runtimeInputs = [ pkgs.curl pkgs.jq ];
           text = builtins.readFile ./find-duplicate-year-roles.sh;
         };
+
+        download-channel-media = pkgs.writeShellApplication {
+          name = "download-channel-media";
+          runtimeInputs = [ pkgs.curl pkgs.jq ];
+          text = builtins.readFile ./download-channel-media.sh;
+        };
       in
       {
         packages = {
-          inherit duplicate-role set-event-folder-permissions set-organizer-folder-permissions find-duplicate-year-roles;
+          inherit duplicate-role set-event-folder-permissions set-organizer-folder-permissions find-duplicate-year-roles download-channel-media;
           default = duplicate-role;
         };
 
@@ -46,6 +52,7 @@
           set-event-folder-permissions     = flake-utils.lib.mkApp { drv = set-event-folder-permissions; };
           set-organizer-folder-permissions = flake-utils.lib.mkApp { drv = set-organizer-folder-permissions; };
           find-duplicate-year-roles        = flake-utils.lib.mkApp { drv = find-duplicate-year-roles; };
+          download-channel-media           = flake-utils.lib.mkApp { drv = download-channel-media; };
           default = self.apps.${system}.duplicate-role;
         };
 
