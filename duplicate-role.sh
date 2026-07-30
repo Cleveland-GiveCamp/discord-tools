@@ -38,9 +38,9 @@ fi
 require curl
 require jq
 
-[[ -z "${DISCORD_BOT_TOKEN:-}" ]] && die "DISCORD_BOT_TOKEN is not set. Set it in the environment or a .env file."
-[[ -z "${DISCORD_SERVER_ID:-}"  ]] && die "DISCORD_SERVER_ID is not set. Set it in the environment or a .env file."
-[[ $# -ne 2 ]]                    && die "Usage: $0 \"<source_role_name>\" \"<new_role_name>\""
+if [[ -z "${DISCORD_BOT_TOKEN:-}" ]]; then die "DISCORD_BOT_TOKEN is not set. Set it in the environment or a .env file."; fi
+if [[ -z "${DISCORD_SERVER_ID:-}"  ]]; then die "DISCORD_SERVER_ID is not set. Set it in the environment or a .env file."; fi
+if [[ $# -ne 2 ]];                     then die "Usage: $0 \"<source_role_name>\" \"<new_role_name>\""; fi
 
 SOURCE_NAME="$1"
 NEW_NAME="$2"
@@ -103,7 +103,7 @@ if [[ -n "$EXISTING" ]]; then
   echo ""
   echo "Role '${NEW_NAME}' already exists (ID: ${EXISTING_ID}), updating permissions..."
 
-  RESULT=$(curl -sf \
+  RESULT=$(curl -s \
     -X PATCH \
     -H "$AUTH" \
     -H "Content-Type: application/json" \
@@ -122,7 +122,7 @@ else
   echo ""
   echo "Creating new role '${NEW_NAME}'..."
 
-  RESULT=$(curl -sf \
+  RESULT=$(curl -s \
     -X POST \
     -H "$AUTH" \
     -H "Content-Type: application/json" \
@@ -146,7 +146,7 @@ fi
 echo ""
 echo "Disabling 'display separately' and '@mention' on source role '${SOURCE_NAME}'..."
 
-HOIST_RESULT=$(curl -sf \
+HOIST_RESULT=$(curl -s \
   -X PATCH \
   -H "$AUTH" \
   -H "Content-Type: application/json" \

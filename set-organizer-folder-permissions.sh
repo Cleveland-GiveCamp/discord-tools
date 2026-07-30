@@ -57,7 +57,7 @@ for arg in "$@"; do
   esac
 done
 
-[[ ${#args[@]} -ne 1 ]] && die "Usage: $0 [--run] \"<year>\""
+if [[ ${#args[@]} -ne 1 ]]; then die "Usage: $0 [--run] \"<year>\""; fi
 
 YEAR="${args[0]}"
 CATEGORY_NAME="Organizers"
@@ -69,8 +69,8 @@ ORGANIZER_ROLE="${YEAR} Organizer"
 require curl
 require jq
 
-[[ -z "${DISCORD_BOT_TOKEN:-}" ]] && die "DISCORD_BOT_TOKEN is not set. Set it in the environment or a .env file."
-[[ -z "${DISCORD_SERVER_ID:-}"  ]] && die "DISCORD_SERVER_ID is not set. Set it in the environment or a .env file."
+if [[ -z "${DISCORD_BOT_TOKEN:-}" ]]; then die "DISCORD_BOT_TOKEN is not set. Set it in the environment or a .env file."; fi
+if [[ -z "${DISCORD_SERVER_ID:-}"  ]]; then die "DISCORD_SERVER_ID is not set. Set it in the environment or a .env file."; fi
 
 API="https://discord.com/api/v10"
 AUTH="Authorization: Bot ${DISCORD_BOT_TOKEN}"
@@ -145,7 +145,7 @@ fi
 CATEGORY=$(echo "$CHANNELS" | jq --arg name "$CATEGORY_NAME" \
   '.[] | select(.type == 4 and .name == $name)')
 
-[[ -z "$CATEGORY" ]] && die "Category '${CATEGORY_NAME}' not found in server."
+if [[ -z "$CATEGORY" ]]; then die "Category '${CATEGORY_NAME}' not found in server."; fi
 
 CATEGORY_ID=$(echo "$CATEGORY" | jq -r '.id')
 info "Found category '${CATEGORY_NAME}' (ID: ${CATEGORY_ID})"
@@ -166,7 +166,7 @@ lookup_role_id() {
   local name="$1"
   local id
   id=$(echo "$ROLES" | jq -r --arg n "$name" '.[] | select(.name == $n) | .id')
-  [[ -z "$id" ]] && die "Role '${name}' not found in server."
+  if [[ -z "$id" ]]; then die "Role '${name}' not found in server."; fi
   echo "$id"
 }
 
@@ -183,8 +183,8 @@ CHILD_IDS=$(echo "$CHANNELS" | jq -r --arg pid "$CATEGORY_ID" \
   '.[] | select(.parent_id == $pid) | .id')
 
 TARGET_IDS=("$CATEGORY_ID")
-while IFS= read -r id; do
-  [[ -n "$id" ]] && TARGET_IDS+=("$id")
+while IFS= read -r id || [[ -n "$id" ]]; do
+  if [[ -n "$id" ]]; then TARGET_IDS+=("$id"); fi
 done <<< "$CHILD_IDS"
 
 CHILD_COUNT=$(( ${#TARGET_IDS[@]} - 1 ))
