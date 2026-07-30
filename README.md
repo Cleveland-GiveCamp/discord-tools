@@ -66,8 +66,8 @@ to scan every text channel in the server. Because the channel name is part of
 the filename, all channels can share the same output directory:
 
 ```
-2024-03-15 - general - photo.png
-2024-03-20 - photos - screenshot.jpg
+2024-03-15 14-22-00 - general - photo.png
+2024-03-20 09-05-31 - general - screenshot.jpg
 ```
 
 Dry-run mode is the default — the filenames of media found are printed without

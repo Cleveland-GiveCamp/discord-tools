@@ -8,7 +8,7 @@
 #
 # The channel is identified by its ID. The channel name is looked up from the
 # API and used in the stored filenames, e.g.:
-#   2024-03-15 - general - photo.png
+#   2024-03-15 14-22-00 - general - photo.png
 #
 # Pass --all-channels instead of a channel ID to scan every text channel in
 # the server.
@@ -187,8 +187,8 @@ scan_channel() {
     # Extract image and video attachments from this page.
     # An attachment is collected if its content_type starts with "image/" or
     # "video/", or if its filename extension matches a known image or video
-    # extension. The message timestamp (ISO 8601) is captured so the date can
-    # be used in the stored filename.
+    # extension. The message timestamp (ISO 8601) is captured so the date and
+    # time can be used in the stored filename.
     local page_media
     page_media=$(echo "$page" | jq -r \
       --arg img_exts "$IMAGE_EXTENSIONS" \
@@ -207,7 +207,10 @@ scan_channel() {
         {
           filename: .filename,
           url: .url,
-          date: ($msg.timestamp | split("T")[0])
+          datetime: (
+            ($msg.timestamp | split("T")[0]) + " " +
+            ($msg.timestamp | split("T")[1] | split(".")[0] | gsub(":"; "-"))
+          )
         }
       ]
       ')
@@ -230,7 +233,8 @@ scan_channel() {
     return
   fi
 
-  # Build target filenames: <date> - <channel_name> - <original_filename>
+  # Build target filenames: <datetime> - <channel_name> - <original_filename>
+  # e.g. "2024-03-15 14-22-00 - general - photo.png"
   # The URL may include query parameters (e.g. Discord CDN tokens); strip those
   # when deriving the bare filename.
   local media_list
@@ -239,7 +243,7 @@ scan_channel() {
     '
     .[] |
     (.filename | gsub("\\?.*$"; "")) as $bare |
-    [.date + " - " + $prefix + " - " + $bare, .url] | @tsv
+    [.datetime + " - " + $prefix + " - " + $bare, .url] | @tsv
     ')
 
   if [[ "$DRY_RUN" == true ]]; then
